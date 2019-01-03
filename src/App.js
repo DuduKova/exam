@@ -28,20 +28,24 @@ class App extends React.Component {
         };
 
         if (numbers.length === 0) {
-            this.setState({countryCode: ''})
+            return this.setState({
+                countryCode: '',
+                text: numbers
+            })
         }
-        if (numbers.length > maxNumInPhone || numbers.length === 0) {
-            this.setState({text: numbers})
+        if (numbers.length > maxNumInPhone) {
+            return this.setState({text: numbers})
         } else {
             if (numbers.length > pos || this.state.keyPressed === 8) {
-                stayWithCursorInPlace();
+                return stayWithCursorInPlace();
             } else {
                 if (numbers.length <= 3) {
                     pos = numbers.length + 1;
-                    stayWithCursorInPlace();
+                    return stayWithCursorInPlace();
                 } else {
-                    this.setState({
-                        text: formattedText
+                    return this.setState({
+                        text: formattedText,
+                        countryCode: '+1'
                     });
                 }
             }
