@@ -10,14 +10,14 @@ class App extends React.Component {
     };
 
     phoneFormat(phone) {
-        let pos = phone.target.selectionStart;
+        let cursorPosition = phone.target.selectionStart;
         const maxNumInPhone = 10;
         const numbers = phone.target.value.replace(/[^0-9]/g, '');
         const formattedText = `(${numbers.slice(0, 1)}${numbers.slice(1, 2) || ' '}${numbers.slice(2, 3) || ' '}) ${numbers.slice(3, 6)}${numbers.length > 6 ? '-' : ''}${numbers.slice(6)}`;
         const stayWithCursorInPlace = () => {
             this.setState({
                 text: formattedText,
-                currentCursorPos: pos,
+                currentCursorPos: cursorPosition,
                 countryCode: '+1'
             }, () => {
                 if (numbers.length === maxNumInPhone) {
@@ -36,11 +36,11 @@ class App extends React.Component {
         if (numbers.length > maxNumInPhone) {
             return this.setState({text: numbers})
         } else {
-            if (numbers.length > pos || this.state.keyPressed === 8) {
+            if (numbers.length > cursorPosition || this.state.keyPressed === 8) {
                 return stayWithCursorInPlace();
             } else {
                 if (numbers.length <= 3) {
-                    pos = numbers.length + 1;
+                    cursorPosition = numbers.length + 1;
                     return stayWithCursorInPlace();
                 } else {
                     return this.setState({
