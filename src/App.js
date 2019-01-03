@@ -2,74 +2,49 @@ import React from 'react';
 
 class App extends React.Component {
 
-    state = {text: '', text2: ''};
-
-    componentDidMount() {
-        document.getElementById('phone').addEventListener('keydown', e => {
-            this.keyPressed = e.keyCode;
-        })
-    }
+    state = {
+        text: '',
+        countryCode: '',
+        currentCursorPos: 0,
+        keyPressed: ''
+    };
 
     phoneFormat(phone) {
-        this.currentCursorPos = phone.target.selectionStart;
+        let pos = phone.target.selectionStart;
+        const maxNumInPhone = 10;
         const numbers = phone.target.value.replace(/[^0-9]/g, '');
-        this.setState({text2: this.countryCode + numbers});
-        switch (numbers.length) {
-            case 0:
-                this.setState({text: '', text2: ''});
-                break;
-            case 1:
-                this.setState({text: '(' + numbers + '  )'}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 ? this.currentCursorPos : this.currentCursorPos + 1);
-                });
-                break;
-            case 2:
-                this.setState({text: '(' + numbers + ' )'}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 ? this.currentCursorPos : this.currentCursorPos);
-                });
-                break;
-            case 3:
-                this.setState({text: '(' + numbers + ')'}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 && this.currentCursorPos > 5  ? this.currentCursorPos - 2 : this.currentCursorPos);
-                });
-                break;
-            case 4:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3)}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 ? this.currentCursorPos : this.currentCursorPos + 2);
-                });
-                break;
-            case 5:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3)}, () => {
-                    this.setCaretPosition('phone', this.currentCursorPos);
-                });
-                break;
-            case 6:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3)}, () => {
-                    this.setCaretPosition('phone', this.currentCursorPos);
-                });
-                break;
-            case 7:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3, 6) + '-' + numbers.slice(6)}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 ? this.currentCursorPos : this.currentCursorPos + 1);
-                });
-                break;
-            case 8:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3, 6) + '-' + numbers.slice(6)}, () => {
-                    this.setCaretPosition('phone', this.currentCursorPos);
-                });
-                break;
-            case 9:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3, 6) + '-' + numbers.slice(6)}, () => {
-                    this.setCaretPosition('phone', this.currentCursorPos);
-                });
-                break;
-            case 10:
-                this.setState({text: '(' + numbers.slice(0, 3) + ') ' + numbers.slice(3, 6) + '-' + numbers.slice(6)}, () => {
-                    this.setCaretPosition('phone', this.keyPressed === 8 ? this.currentCursorPos + 4 : this.currentCursorPos);
-                });
-                break;
-            default:
-                this.setState({text: numbers});
+        const formattedText = `(${numbers.slice(0, 1)}${numbers.slice(1, 2) || ' '}${numbers.slice(2, 3) || ' '}) ${numbers.slice(3, 6)}${numbers.length > 6 ? '-' : ''}${numbers.slice(6)}`;
+        const stayWithCursorInPlace = () => {
+            this.setState({
+                text: formattedText,
+                currentCursorPos: pos,
+                countryCode: '+1'
+            }, () => {
+                if (numbers.length === maxNumInPhone) {
+                    return;
+                }
+                this.setCaretPosition('phone', this.state.currentCursorPos)
+            });
+        };
+
+        if (numbers.length === 0) {
+            this.setState({countryCode: ''})
+        }
+        if (numbers.length > maxNumInPhone || numbers.length === 0) {
+            this.setState({text: numbers})
+        } else {
+            if (numbers.length > pos || this.state.keyPressed === 8) {
+                stayWithCursorInPlace();
+            } else {
+                if (numbers.length <= 3) {
+                    pos = numbers.length + 1;
+                    stayWithCursorInPlace();
+                } else {
+                    this.setState({
+                        text: formattedText
+                    });
+                }
+            }
         }
     }
 
@@ -81,42 +56,43 @@ class App extends React.Component {
                 const range = elem.createTextRange();
                 range.move('character', caretPos);
                 range.select();
-            }
-            else {
+            } else {
                 if (elem.selectionStart) {
                     elem.focus();
                     elem.setSelectionRange(caretPos, caretPos);
-                }
-                else
+                } else
                     elem.focus();
             }
         }
     }
 
-    checkInput(text) {
+    checkInput(phone) {
         const patt1 = /[a-zA-Z]+/g;
         const patt2 = /\s/g;
         const patt3 = /[^0-9]/g;
-        const check = text.match(patt1);
-        const check2 = text.match(patt2);
-        const check3 = text.match(patt3);
-        if (check3 !== null && text.length === 1) {
+        const check = phone.match(patt1);
+        const check2 = phone.match(patt2);
+        const check3 = phone.match(patt3);
+        if (check3 !== null && phone.length === 1) {
             return true;
         }
         if (check2 !== null) {
-            return (check2.length > 2 || check !== null);
+            return (check2.length > 3 || check !== null);
         }
         return (check !== null);
     }
 
     onInput = e => {
-
         if (this.checkInput(e.target.value)) {
             return;
         }
-
         this.phoneFormat(e);
+    };
 
+    getKey = event => {
+        this.setState({
+            keyPressed: event.keyCode
+        });
     };
 
     style = {
@@ -126,17 +102,13 @@ class App extends React.Component {
         marginTop: '30px'
     };
 
-    countryCode = '+1';
-    currentCursorPos;
-    keyPressed;
-
     render() {
         return (
             <div style={this.style}>
-                <input style={this.style} type="tel" id="phone" name="phone"
-                       placeholder="type phone number"
-                       value={this.state.text} onInput={this.onInput}/><br />
-                <input style={this.style} type="readonly" id="phone2" value={this.state.text2}/>
+                <input style={this.style} type="text" id="phone" placeholder="type phone number"
+                       value={this.state.text} onChange={this.onInput.bind(this)} onKeyDown={this.getKey}/><br/>
+                <input style={this.style} type="readonly" id="phone2" onChange={this.onInput.bind(this)}
+                       value={this.state.text.replace(/[^0-9]/g, '').replace('', this.state.countryCode)}/>
             </div>
         );
     }
